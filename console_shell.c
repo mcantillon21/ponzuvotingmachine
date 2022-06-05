@@ -1,5 +1,5 @@
 #include "gpio.h"
-#include "keyboard.h"
+#include "keyboard.h    "
 #include "console.h"
 #include "shell.h"
 
@@ -15,4 +15,7 @@ void main(void)
     gpio_init();
     console_init(NUM_ROWS, NUM_COLS, GL_AMBER, GL_BLACK);
     keyboard_init(KEYBOARD_CLOCK, KEYBOARD_DATA);
+
+    shell_init(keyboard_read_next, console_printf);
+    shell_run();
 }

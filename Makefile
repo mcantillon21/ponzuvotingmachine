@@ -1,7 +1,7 @@
 # Programs built by this makefile
-RUN_PROGRAM   = graphic.bin
+RUN_PROGRAM   = vote.bin
 
-MY_MODULE_SOURCES = fb.c gl.c console.c
+MY_MODULE_SOURCES = fb.c gl.c console.c merkle.c sha256.c screen.c ps2.c gpio.c keyboard.c
 
 # MY_MODULE_SOURCES is a list of those library modules (such as gpio.c)
 # for which you intend to use your own code. The reference implementation
@@ -23,6 +23,7 @@ MY_MODULE_SOURCES = fb.c gl.c console.c
 # You shouldn't need to modify anything below this line.
 ########################################################
 
+
 PROGRAMS      = $(RUN_PROGRAM) $(TEST_PROGRAM)
 
 all: $(PROGRAMS)
@@ -30,8 +31,13 @@ all: $(PROGRAMS)
 # Flags for compile and link
 CFLAGS	= -I$(CS107E)/include -Og -g -std=c99 $$warn $$freestanding
 CFLAGS += -mapcs-frame -fno-omit-frame-pointer -mpoke-function-name
+
 LDFLAGS	= -nostdlib -T memmap -L$(CS107E)/lib
 LDLIBS 	= -lpi -lgcc
+
+# CFLAGS += -I/opt/homebrew/opt/openssl@3/include
+# LDFLAGS += -L/opt/homebrew/opt/openssl@3/lib -lcrypto
+
 
 # Common objects for the programs built by this makefile
 SOURCES = start.s cstart.c $(MY_MODULE_SOURCES)
@@ -50,7 +56,7 @@ OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 
 # Compile C source to object file
 %.o: %.c
-	arm-none-eabi-gcc $(CFLAGS) -c $< -o $@
+	arm-none-eabi-gcc $(CFLAGS) $(OCFLAGS) -c $< -o $@
 
 # Assemble asm source to object file
 %.o: %.s
