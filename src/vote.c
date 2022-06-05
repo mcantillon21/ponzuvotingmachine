@@ -369,7 +369,7 @@ void handle_admin_screen() {
 
     unsigned int i = 0;
 
-    unsigned int x = (unsigned int) em(20);
+    unsigned int x = (unsigned int) em(25);
     unsigned int y = (unsigned int) em(30);
     unsigned int char_width = gl_get_char_width();
     unsigned int char_height = gl_get_char_height();
@@ -413,7 +413,7 @@ void handle_admin_screen() {
     unsigned int * intervals = malloc(BUFFER_SIZE * 4);
     size_t int_iter = 0;
 
-    x = (unsigned int) em(20);
+    x = (unsigned int) em(25);
     y = (unsigned int) em(50);
 
     while (key != '\n') {
