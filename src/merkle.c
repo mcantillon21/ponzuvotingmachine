@@ -109,7 +109,7 @@ void print_bytes(void * bytes, int len) {
     char hash_str[len * 2 + 1];
     bytes_to_hex((char *) bytes, hash_str, len);
     printf("%s\n", hash_str);
-} 
+}
 
 node* create_merkle_proof(vote_merkle * merkle, size_t leaf_index) {
     node *merkle_proof = malloc(NODE_SIZE * merkle->height);
@@ -152,62 +152,3 @@ bool verify_merkle_proof(node* merkle_root, node* merkle_proof, node* leaf_node,
     
     return cmp((char *) curr_aggr, (char *) merkle_root, NODE_SIZE);
 }
-
-
-// int main()
-// {
-//     // unsigned char hash[100];
-//     // const unsigned char *data = "123";
-//     // SHA256(data, 3, hash);
-//     // unsigned char hash_str[64];
-//     // bytes_to_hex(hash, hash_str, 32);
-//     // printf("%s\n", hash_str);
-
-//     node left_node;
-//     memcpy(&left_node, "0123456789abcdef0123456789abcdef", 32);
-//     left_node.vote_count = 2;
-
-//     node right_node;
-//     memcpy(&right_node, "0123456789abcdef0123456789abcdef", 32);
-//     right_node.vote_count = 1;
-
-// 	SHA256_CTX ctx;
-
-//     char hash[32];
-//     SHA256("password", 8, hash);
-//     print_bytes(hash, 32);
-
-//     leaf leafs[3];
-//     memset(&leafs[0], '\0', LEAF_SIZE);
-//     memcpy(leafs[0].sig, "password", 32);
-//     hex_to_bytes("5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", leafs[0].pk, 64);
-//     memcpy(leafs[0].randomness, "123", 3);
-//     leafs[0].vote = 1;
-
-//     memset(&leafs[1], '\0', LEAF_SIZE);
-//     memcpy(leafs[1].sig, "password", 32);
-//     hex_to_bytes("5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", leafs[1].pk, 64);
-//     memcpy(leafs[1].randomness, "123", 3);
-//     leafs[1].vote = 0;
-    
-//     memset(&leafs[2], '\0', LEAF_SIZE);
-//     memcpy(leafs[2].sig, "password", 32);
-//     hex_to_bytes("5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", leafs[2].pk, 64);
-//     memcpy(leafs[2].randomness, "123", 3);
-//     leafs[2].vote = 2;
-
-//     vote_merkle* merkle_tree = create_merkle_tree(leafs, 3);
-
-//     printf("%d\n", (unsigned int) merkle_tree->height);
-//     print_bytes(&merkle_tree->nodes[0], 33);
-//     print_bytes(&merkle_tree->nodes[1], 33);
-//     print_bytes(&merkle_tree->nodes[2], 33);
-//     print_bytes(&merkle_tree->nodes[3], 33);
-
-//     node* merkle_proof = create_merkle_proof(merkle_tree, 0);
-
-//     print_bytes(&merkle_proof[0], 33);
-//     print_bytes(&merkle_proof[1], 33);
-
-//     return 0;
-// }

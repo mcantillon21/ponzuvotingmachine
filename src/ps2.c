@@ -26,6 +26,8 @@ struct ps2_device {
 
 #define TIME_OUT_DELAY 1000
 
+static unsigned int lastkeytime = 0;
+
 // Get i-th LSB
 #define bitfl(num, i) ((num >> i) & 1)
 
@@ -58,7 +60,8 @@ void interpret_code(ps2_device_t *dev)
 
     if (valid) {
         rb_enqueue(dev->ring_buffer, input);
-        // rb_enqueue(dev->time_ring_buffer, );
+        rb_enqueue(dev->time_ring_buffer, timer_get_ticks());
+        lastkeytime = timer_get_ticks();
     } 
 }
 
@@ -90,6 +93,7 @@ ps2_device_t *ps2_new(unsigned int clock_gpio, unsigned int data_gpio)
 {
     ps2_device_t *dev = malloc(sizeof(*dev));
     dev->ring_buffer = rb_new();
+    dev->time_ring_buffer = rb_new();
     dev->last_press_time = timer_get_ticks();
     dev->ticker = 0;
     dev->buf = 0;
@@ -122,3 +126,28 @@ unsigned char ps2_read(ps2_device_t *dev)
     rb_dequeue(dev->ring_buffer, &elem);
     return (unsigned char) elem;
 } 
+
+typedef struct {
+    unsigned char elem;
+    unsigned int time;
+} ps2_return; 
+
+// Read a single PS2 scan code. Always returns a correctly received scan code:
+// if an error occurs (e.g., start bit not detected, parity is wrong), the
+// function should read another scan code.
+ps2_return ps2_read_time(ps2_device_t *dev)
+{
+    while (rb_empty(dev->ring_buffer)) { }
+    while (rb_empty(dev->time_ring_buffer)) { }
+
+    unsigned int time = 0;
+    int elem = 0;
+
+    rb_dequeue(dev->ring_buffer, &elem);
+    rb_dequeue(dev->time_ring_buffer, (int *) &time);
+
+    ps2_return return_obj;
+    return_obj.elem = elem;
+    return_obj.time = time;
+    return return_obj;
+}

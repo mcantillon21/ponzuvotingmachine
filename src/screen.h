@@ -17,6 +17,8 @@ enum SelectedBox {
     CertificateBox,
     MerkleBox,
     ResultsBox,
+    AdminScreenBox,
+    AdminLoginScreenBox,
 };
 
 enum Screen {
@@ -27,9 +29,11 @@ enum Screen {
     Admin,
     FraudProof,
     Merkle,
-    Results
+    Results,
+    AdminLogin,
 };
 
+#define em(x) x * 4
 
 void screen_init(void);
 
@@ -46,19 +50,22 @@ void set_selected_screen(unsigned int new_screen);
 // SCREEN DRAW FUNCTIONS
 // 
 
-void draw_vote_screen(void);
-void draw_auth_screen(char* curr_pass);
+void draw_vote_screen(char * voter_name);
+void draw_auth_screen(char * curr_pass, char* pass_error, char* voter_name);
 void draw_home_screen(void);
 void draw_cert_screen(char* cert);
 void draw_fraud_proof_screen(char* cert);
 void draw_fraud_visual_screen(node* merkle_proof, vote_merkle* merkle, int node_index);
 void draw_results_screen(unsigned int num_votes, vote_merkle* merkle_tree);
-
+void draw_admin_screen(char * curr_pass_input, char * success);
+void draw_admin_auth_screen(char * curr_admin_pass);
+void draw_fraud_proof_screen(char * cert);
+ 
 void double_clear(void);
 void switch_screen(unsigned int next_screen, unsigned int next_box);
 
 // Block Draw Functions
-void draw_title_block(void);
+void draw_title_block(char * voter_name);
 void draw_back_block(unsigned int selected);
 
 void draw_matt_block(unsigned int selected, unsigned int selected_candidate);

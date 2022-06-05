@@ -3,8 +3,8 @@
 #include "strings.h"
 #include "printf.h"
 
-static unsigned int selected = AdminBox;
-static unsigned int selected_screen = Home;
+static unsigned int selected = AdminScreenBox;
+static unsigned int selected_screen = Admin;
 static unsigned int selected_candidate = None;
 
 static color_t c_foreground = 0xFFFFFFFF;
@@ -22,8 +22,6 @@ int unsigned_to_base(char *buf,
  * Boxes Map
  */
 
-#define em(x) x * 4
-
 static key_mapping key_map[] = {
     {None, None, None, None}, // None
     {None, None, None, Candidate1}, // Back
@@ -37,6 +35,8 @@ static key_mapping key_map[] = {
     {None, None, None, None}, // CertificateBox
     {None, None, None, None}, // MerkleBox
     {None, None, None, None}, // ResultsBox
+    {None, None, None, None}, // AdminScreenBox
+    {None, None, None, None}, // AdminLoginScreenBox
 };
 
 void screen_init(void) {
@@ -75,21 +75,22 @@ void set_selected_screen(unsigned int new_screen) {
  * Screen Draw Functions
  */
 
-void draw_vote_screen(void) {
-    draw_title_block();
+void draw_vote_screen(char* name) {
+    draw_title_block(name);
     draw_back_block(selected);
     draw_matt_block(selected, selected_candidate);
     draw_christos_block(selected, selected_candidate);
     draw_submit_vote_block(selected, selected_candidate);
 }
 
-void draw_auth_screen(char * curr_pass) {
-    gl_draw_rect(em(15), em(10), em(90), em(40), GL_WHITE);
+void draw_auth_screen(char * curr_pass, char* pass_error, char* voter_name) {
+    gl_draw_rect(em(15), em(10), em(90), em(50), GL_WHITE);
     gl_draw_string(em(20), em(20), "Enter Vote Phrase:", GL_BLACK);
-    gl_draw_string(em(35), em(40), curr_pass, GL_BLACK);
 
-    gl_draw_rect(em(15), em(60), em(90), em(25), GL_WHITE);
-    gl_draw_string(em(35), em(70), "Press Enter", GL_BLACK);
+    gl_draw_string(em(20), em(45), pass_error, GL_RED);
+
+    gl_draw_rect(em(15), em(70), em(90), em(25), GL_WHITE);
+    gl_draw_string(em(35), em(80), "Press Enter", GL_BLACK);
 }
 
 void draw_home_screen(void) {
@@ -104,23 +105,26 @@ void draw_cert_screen(char * cert) {
 }
 
 void draw_admin_auth_screen(char * curr_admin_pass) {
+    unsigned int len = strlen(curr_admin_pass);
+    char display[len + 1];
+    memset(display, '*', len);
+    display[len] = '\0';
+
     gl_draw_rect(em(15), em(10), em(90), em(40), GL_WHITE);
     gl_draw_string(em(20), em(20), "Enter Password:", GL_BLACK);
-    gl_draw_string(em(35), em(40), curr_admin_pass, GL_BLACK);
+    gl_draw_string(em(35), em(40), display, GL_BLACK);
 
     gl_draw_rect(em(15), em(60), em(90), em(25), GL_WHITE);
     gl_draw_string(em(35), em(70), "Press Enter", GL_BLACK);
 }
 
-void draw_admin_screen(char * curr_pass_input) {
-    gl_draw_rect(em(15), em(10), em(90), em(40), GL_WHITE);
-    gl_draw_string(em(20), em(20), "Enter New Vote Phrase", GL_BLACK);
-    gl_draw_string(em(35), em(40), curr_pass_input, GL_BLACK);
+void draw_admin_screen(char * curr_pass_input, char * success) {
+    gl_draw_rect(em(15), em(10), em(90), em(70), GL_WHITE);
+    gl_draw_string(em(20), em(20), "Enter Name:", GL_BLACK);
+    gl_draw_string(em(20), em(40), "Enter New Vote Phrase", GL_BLACK);
 
-    gl_draw_rect(em(15), em(60), em(90), em(25), GL_WHITE);
-    gl_draw_string(em(35), em(70), "Press Enter", GL_BLACK);
+    gl_draw_string(em(20), em(60), success, 0x4BB543);
 }
-
 
 void draw_fraud_proof_screen(char * cert) {
     gl_draw_rect(em(5), em(5), em(110), em(40), GL_WHITE);
@@ -263,11 +267,14 @@ void switch_screen(unsigned int next_screen, unsigned int next_box) {
 
 // --------------------- VOTE PAGE ----------------------
 
-void draw_title_block(void)
+void draw_title_block(char* name)
 {
     color_t COLOR = GL_WHITE;
     gl_draw_rect(em(30), em(5), em(80), em(11), COLOR);
-    gl_draw_string(em(35), em(7), "Voting Machine", GL_BLACK);
+    char buf[100];
+    snprintf(buf, 100,  "Welcome, %s", name);
+    gl_draw_string(em(35), em(7), buf, GL_BLACK);
+
 }
 
 void draw_back_block(unsigned int selected)
