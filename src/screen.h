@@ -55,9 +55,9 @@ void draw_auth_screen(char * curr_pass, char* pass_error, char* voter_name);
 void draw_home_screen(void);
 void draw_cert_screen(char* cert);
 void draw_fraud_proof_screen(char* cert);
-void draw_fraud_visual_screen(node* merkle_proof, vote_merkle* merkle, int node_index);
+void draw_fraud_visual_screen(node* merkle_proof, vote_merkle* merkle, int node_index, bool empty_proof);
 void draw_results_screen(unsigned int num_votes, vote_merkle* merkle_tree);
-void draw_admin_screen(char * curr_pass_input, char * success);
+void draw_admin_screen(char* voter_name, char * curr_pass_input, char * success);
 void draw_admin_auth_screen(char * curr_admin_pass);
 void draw_fraud_proof_screen(char * cert);
  

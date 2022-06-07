@@ -34,6 +34,7 @@ static ticket tickets[TICKET_SIZE * MAX_TICKET];
 static size_t ticket_iter = 0;
 static int selected_ticket = -1;
 static int selected_cert = 2;
+static bool empty_proof = false;
 
 // Votes
 static leaf vote_leafs[30];
@@ -146,7 +147,7 @@ void draw_screen(void) {
             draw_vote_screen(tickets[selected_ticket].name);
             break;
         case Admin:
-            draw_admin_screen(admin_input, success_phrase);
+            draw_admin_screen(voter_name, admin_input, success_phrase);
             break;
         case Certificate:
             draw_cert_screen(current_cert);
@@ -155,7 +156,7 @@ void draw_screen(void) {
             draw_fraud_proof_screen(cert_input);
             break;
         case Merkle:
-            draw_fraud_visual_screen(curr_merkle_proof, vote_merkle_tree, selected_cert);
+            draw_fraud_visual_screen(curr_merkle_proof, vote_merkle_tree, selected_cert, empty_proof);
             break;
         case Results:
             printf("new vote: %d", vote_iter);
@@ -256,7 +257,7 @@ void handle_auth_screen() {
     unsigned int * intervals = malloc(BUFFER_SIZE * 4);
     size_t int_iter = 0;
 
-    unsigned int x = (unsigned int) em(20);
+    unsigned int x = (unsigned int) em(25);
     unsigned int y = (unsigned int) em(30);
     unsigned int char_width = gl_get_char_width();
     unsigned int char_height = gl_get_char_height();
@@ -303,13 +304,20 @@ void handle_fraud_screen() {
     memset(cert_input, '\0', CERT_SIZE);
     draw_fraud_proof_screen(cert_input);
     gl_swap_buffer();
-    
+    empty_proof = false;
 
     unsigned int i = 0;
     unsigned char key = keyboard_read_next_char();
     while (key != '\n') {
         if (key == '\b') {
             if (i != 0) cert_input[--i] = '\0';
+        } else if (key == '\t') {
+            selected_cert = vote_iter;
+            curr_merkle_proof = create_merkle_proof(vote_merkle_tree, vote_iter);
+            empty_proof = true;
+            switch_screen(Merkle, MerkleBox);
+            memset(cert_input, '\0', CERT_SIZE);
+            return;
         } else {
             if (i < CERT_SIZE) cert_input[i++] = key;
         }
@@ -363,9 +371,9 @@ void handle_admin_screen() {
     // Clear previous passcode
     memset(admin_input, '\0', MAX_PASS);
     memset(voter_name, '\0', MAX_PASS);
-    draw_admin_screen(admin_input, success_phrase);
+    draw_admin_screen(voter_name, admin_input, success_phrase);
     gl_swap_buffer();
-    draw_admin_screen(admin_input, success_phrase);
+    draw_admin_screen(voter_name, admin_input, success_phrase);
 
     unsigned int i = 0;
 
@@ -386,9 +394,9 @@ void handle_admin_screen() {
         if (key == '\b') {
             i--;
             x -= char_width;
-            gl_draw_rect(x, y, char_width, char_height, GL_WHITE);
+            gl_draw_rect(x, y, char_width, char_height, 0xF7DCB4);
             gl_swap_buffer();
-            gl_draw_rect(x, y, char_width, char_height, GL_WHITE);
+            gl_draw_rect(x, y, char_width, char_height, 0xF7DCB4);
         } 
         else {
             if (i < MAX_PASS) {
@@ -405,6 +413,8 @@ void handle_admin_screen() {
     }
     voter_name[i] = '\0';
 
+    reset:
+
     i = 0;
     key_out = keyboard_read_next();
     key = key_out.elem;
@@ -418,9 +428,17 @@ void handle_admin_screen() {
 
     while (key != '\n') {
         if (key == PS2_KEY_ESC) {
-            success_phrase[0] = '\0';
-            switch_screen(Home, AdminBox);
-            return;
+            if (strlen(admin_input) != 0) {
+                admin_input[0] = '\0';
+                draw_admin_screen(voter_name, admin_input, success_phrase);
+                gl_swap_buffer();
+                draw_admin_screen(voter_name, admin_input, success_phrase);
+                goto reset; 
+            } else {
+                switch_screen(Home, AdminBox);
+                success_phrase[0] = '\0';
+                return;
+            }
         }
         if (key == '\b') {} 
         else {
@@ -446,7 +464,7 @@ void handle_admin_screen() {
     printf("%d %d\n", strlen(admin_input), int_iter);
     printf("%d", intervals[0]);
     
-    draw_admin_screen(admin_input, success_phrase);
+    draw_admin_screen(voter_name, admin_input, success_phrase);
     gl_swap_buffer();
 
     memcpy(success_phrase, "Registration success", strlen("Registration success"));

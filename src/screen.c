@@ -86,11 +86,12 @@ void draw_vote_screen(char* name) {
 void draw_auth_screen(char * curr_pass, char* pass_error, char* voter_name) {
     gl_draw_rect(em(15), em(10), em(90), em(50), GL_WHITE);
     gl_draw_string(em(20), em(20), "Enter Vote Phrase:", GL_BLACK);
+    gl_draw_rect(em(24), em(29), em(55), em(6), 0xF7DCB4);
 
     gl_draw_string(em(20), em(45), pass_error, GL_RED);
 
-    gl_draw_rect(em(15), em(70), em(90), em(25), GL_WHITE);
-    gl_draw_string(em(35), em(80), "Press Enter", GL_BLACK);
+    gl_draw_rect(em(15), em(70), em(90), em(25), 0xF7DCB4);
+    gl_draw_string(em(37), em(80), "Press Enter", GL_BLACK);
 }
 
 void draw_home_screen(void) {
@@ -112,16 +113,19 @@ void draw_admin_auth_screen(char * curr_admin_pass) {
 
     gl_draw_rect(em(15), em(10), em(90), em(40), GL_WHITE);
     gl_draw_string(em(20), em(15), "Enter Password:", GL_BLACK);
-    gl_draw_rect(em(34), em(34), em(24), em(6), 0xF7DCB4);
-    gl_draw_string(em(35), em(35), display, GL_BLACK);
+    gl_draw_rect(em(24), em(29), em(35), em(6), 0xF7DCB4);
+    gl_draw_string(em(25), em(30), display, GL_BLACK);
 
     gl_draw_rect(em(15), em(60), em(90), em(25), GL_WHITE);
     gl_draw_string(em(40), em(70), "Press Enter", GL_BLACK);
 }
 
-void draw_admin_screen(char * curr_pass_input, char * success) {
+void draw_admin_screen(char * voter_name, char * curr_pass_input, char * success) {
     gl_draw_rect(em(15), em(10), em(90), em(70), GL_WHITE);
     gl_draw_string(em(20), em(20), "Enter Name:", GL_BLACK);
+    gl_draw_rect(em(24), em(29), em(35), em(6), 0xF7DCB4);
+    gl_draw_rect(em(24), em(49), em(65), em(6), 0xF7DCB4);
+    gl_draw_string(em(25), em(30), voter_name, GL_BLACK);
     gl_draw_string(em(20), em(40), "Enter New Vote Phrase:", GL_BLACK);
 
     gl_draw_string(em(25), em(60), success, 0x4BB543);
@@ -130,22 +134,27 @@ void draw_admin_screen(char * curr_pass_input, char * success) {
 void draw_fraud_proof_screen(char * cert) {
     gl_draw_rect(em(5), em(5), em(110), em(40), GL_WHITE);
     gl_draw_string(em(10), em(10), "Enter Certificate:", GL_BLACK);
-    gl_draw_string(em(10), em(20), cert, GL_BLACK);
+    gl_draw_string(em(15), em(20), cert, GL_BLACK);
 
     gl_draw_rect(em(5), em(60), em(110), em(25), GL_WHITE);
     gl_draw_string(em(40), em(70), "Press Enter", GL_BLACK);
 }
 
-void merkle_rect(int x, int y, color_t color) {
-    gl_draw_rect(x - em(2), y - em(2), em(4), em(4), color);
-}
+void merkle_rect(int x, int y, color_t color, unsigned int num, bool show_num) {
+    gl_draw_rect(x - em(3), y - em(3), em(6), em(6), color);
+    if (show_num) {
+        char num_buffer[3];
+        unsigned_to_base(num_buffer, 3, num, 10, 1);
+        gl_draw_string(x - em(3) + em(1), y - em(3) + em(1), num_buffer, GL_BLACK);
+    }
+ }
 
 #define left_child(i) 2 * i + 1
 #define right_child(i) 2 * i + 2
 #define parent(i) (i - 1) / 2
 #define is_right(i) i % 2 == 0
 
-void draw_fraud_visual_screen(node* merkle_proof, vote_merkle* merkle, int node_index) {
+void draw_fraud_visual_screen(node* merkle_proof, vote_merkle* merkle, int node_index, bool empty_proof) {
     if (node_index == -1) {
         gl_draw_rect(em(5), em(5), em(110), em(90), GL_WHITE);
         gl_draw_string(em(10), em(10), "Invalid Certificate", GL_BLACK);
@@ -155,13 +164,19 @@ void draw_fraud_visual_screen(node* merkle_proof, vote_merkle* merkle, int node_
 
      } else {
         gl_draw_rect(em(5), em(5), em(110), em(90), GL_WHITE);
-        gl_draw_string(em(10), em(10), "Valid Certificate!:", GL_BLACK);
 
-        merkle_rect(em(20), em(76), GL_RED);
-        merkle_rect(em(20), em(83), 0xFF4281f5);
-        gl_draw_string(em(30), em(74), "Merkle Proof Nodes", GL_BLACK);
-        gl_draw_string(em(30), em(81), "Your Path", GL_BLACK);
+        merkle_rect(em(20), em(76), GL_RED, 0, false);
+        merkle_rect(em(20), em(83), 0xFF4281f5, 0, false);
 
+        if (empty_proof) {
+            gl_draw_string(em(10), em(10), "Empty Tree Proof:", GL_BLACK);
+            gl_draw_string(em(30), em(74), "Merkle Proof Nodes", GL_BLACK);
+            gl_draw_string(em(30), em(81), "'Empty Path'", GL_BLACK);
+        } else {
+            gl_draw_string(em(10), em(10), "Valid Certificate:", GL_BLACK);
+            gl_draw_string(em(30), em(74), "Merkle Proof Nodes", GL_BLACK);
+            gl_draw_string(em(30), em(81), "Your Path", GL_BLACK);
+        }
 
         int starting = em(55);
         int curr_y = em(20);
@@ -181,7 +196,6 @@ void draw_fraud_visual_screen(node* merkle_proof, vote_merkle* merkle, int node_
         printf("Merkle Root:\n");
         print_bytes(&merkle->nodes[0], 32);
  
-
         // Colour Nodes 
         size_t cols[num_leafs * 2 - 1];
         unsigned int curr_node = node_index + num_leafs - 1;
@@ -206,7 +220,11 @@ void draw_fraud_visual_screen(node* merkle_proof, vote_merkle* merkle, int node_
             int currx = starting; 
             for (int j = 0; j < num_nodes; j++) {
                 color_t color = color_map[cols[true_index]];
-                merkle_rect(currx, curr_y, color);
+                if (color == 0) {
+                    merkle_rect(currx, curr_y, color, 0, false);
+                } else {
+                    merkle_rect(currx, curr_y, color, (unsigned int) merkle->nodes[true_index].vote_count, true);
+                }
                 currx += row_sep;
                 true_index++;
             }
@@ -274,7 +292,7 @@ void draw_title_block(char* name)
     gl_draw_rect(em(30), em(5), em(85), em(11), COLOR);
     char buf[100];
     snprintf(buf, 100,  "Welcome, %s", name);
-    gl_draw_string(em(35), em(10), buf, GL_BLACK);
+    gl_draw_string(em(35), em(8), buf, GL_BLACK);
 
 }
 
@@ -282,7 +300,7 @@ void draw_back_block(unsigned int selected)
 {
     color_t COLOR = (selected == Back) ? 0xF7DCB4 : GL_WHITE;
     gl_draw_rect(em(5), em(5), em(20), em(11), COLOR);
-    gl_draw_string(em(8), em(10), "Back", GL_BLACK);
+    gl_draw_string(em(8), em(8), "Back", GL_BLACK);
 }
 
 
@@ -307,7 +325,7 @@ void draw_submit_vote_block(unsigned int selected, unsigned int selected_candida
         COLOR = (selected_candidate == None) ? 0xFF999999 : GL_WHITE;
     }
     gl_draw_rect(em(5), em(65), em(110), em(25), COLOR);
-    gl_draw_string(em(40), em(70), "Submit Vote", GL_BLACK);
+    gl_draw_string(em(40), em(75), "Submit Vote", GL_BLACK);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -372,102 +390,88 @@ void move(unsigned int direction) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// typedef struct  {
-//     unsigned char first_char, last_char;
-//     size_t img_width, img_height;
-//     unsigned char pixel_data[];
-// } font_t;
+typedef struct  {
+    unsigned char first_char, last_char;
+    size_t img_width, img_height;
+    unsigned char pixel_data[];
+} img_t;
 
-// static const font_t font_default;
-// static const font_t *g_font = &font_default;
+static const img_t img_default;
+static const img_t *g_img = &img_default;
 
-// size_t img_get_glyph_height(void) {
-//     return g_font->img_height;
-// }
+size_t img_get_glyph_height(void) {
+    return g_img->img_height;
+}
 
-// size_t img_get_glyph_width(void) {
-//     return g_font->img_width;
-// }
+size_t img_get_glyph_width(void) {
+    return g_img->img_width;
+}
 
-// size_t img_get_glyph_size(void) {
-//     return img_get_glyph_width() * img_get_glyph_height();
-// }
+size_t img_get_glyph_size(void) {
+    return img_get_glyph_width() * img_get_glyph_height();
+}
 
-// bool img_get_glyph(char ch, unsigned char buf[], size_t buflen) {
-//     if (ch == ' ') { // Handle space as special case, return all-off image
-//         for (int i = 0; i < buflen; i++) {
-//             buf[i] = 0;
-//         }
-//     } else {
-//         int index = 0;
-//         int nbits_in_row = (g_font->last_char - g_font->first_char + 1) * img_get_glyph_width();
-//         int x_offset = (ch - g_font->first_char);
-//         for (int y = 0; y < img_get_glyph_height(); y++) {
-//             for (int x = 0; x < img_get_glyph_width(); x++) {
-//                 int bit_index = y * nbits_in_row + x_offset * img_get_glyph_width() + x;
-//                 int bit_start = bit_index / 8;
-//                 int bit_offset = bit_index % 8;
-//                 // extract single bit for this pixel from bitmap
-//                 int val = g_font->pixel_data[bit_start] & (1 << (7 - bit_offset));
-//                 // use 0xff for on pixel, 0x0 for off pixel
-//                 buf[index++] = val != 0 ? 0xFF : 0x00;
-//             }
+
+// static const img_t img_default = {
+//     .img_width = 84, .img_height = 48,
+//     .pixel_data = {
+//     0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x3, 0x80, 0x0, 0x0, 0x7, 0xf0, 
+//     0x0, 0x0, 0xd, 0xa0, 0x0, 0x0, 0x1c, 0xf0, 0x0, 0x0, 0x1f, 0x90, 0x0, 0x0, 0x7, 
+//     0xe0, 0x0, 0x0, 0xe, 0x40, 0x0, 0x0, 0x1a, 0x70, 0x0, 0x0, 0x19, 0x98, 0x0, 0x0, 
+//     0x1f, 0xf8, 0x0, 0x0, 0x6, 0x60, 0x0, 0x0, 0xe, 0x70, 0x0, 0x0, 0x0, 0x0, 0x0, 
+//     0x0, 0x0, 0x0, 0x0 }
+// };
+
+// bool img_get_glyph(unsigned char buf[], size_t buflen) {
+//     int index = 0;
+//     // int nbits_in_row = (g_img->last_char - g_img->first_char + 1) * img_get_glyph_width();
+//     int nbits_in_row = img_default.img_width;
+//     int x_offset = 0;
+//     for (int y = 0; y < img_default.img_height; y++) {
+//         for (int x = 0; x < img_default.img_height; x++) {
+//             int bit_index = y * nbits_in_row + x;
+//             int bit_start = bit_index / 8;
+//             int bit_offset = bit_index % 8;
+//             // extract single bit for this pixel from bitmap
+//             int val = img_default.pixel_data[bit_index] & (1 << (7 - bit_offset));
+//             // use 0xff for on pixel, 0x0 for off pixel
+//             buf[index++] = val != 0 ? 0xFF : 0x00;
 //         }
 //     }
 //     return true;
 // }
 
-// void gl_draw_img(int x, int y, char ch, color_t c)
+// void gl_draw_img(int x, int y, color_t c)
 // {
 //     // Load glyph to char_map.
-//     unsigned int glyph_size = img_get_glyph_size();
+//     unsigned int glyph_size = img_default.img_height * img_default.img_height;
 //     unsigned char buf[glyph_size];
-//     if (!img_get_glyph(ch, buf, glyph_size)) return;
-//     unsigned char (*char_map)[img_get_glyph_width()] = (void *) buf;
+//     // if (!img_get_glyph(ch, buf, glyph_size)) return;
+//     unsigned int image_width = img_default.img_width;
+//     unsigned int image_height = img_default.img_height;
+//     if (!img_get_glyph(buf, glyph_size)) return;
+//     // img_get_glyph(ch, buf, glyph_size);
+//     unsigned char (*char_map)[image_width] = (void *) buf;
+
 
 //     // Copy char_map to frame buffer, with position x, y being upper left corner
 //     // of the char_map.
-//     for (int dy = 0; dy < img_get_glyph_height(); dy++) {
-//         for (int dx = 0; dx < img_get_glyph_width(); dx++) {
+//     for (int dy = 0; dy < image_height; dy++) {
+//         for (int dx = 0; dx < image_width; dx++) {
 //             if (char_map[dy][dx] == 0xff) gl_draw_pixel(x + dx, y + dy, c | 0xff000000);
 //         }
 //     }
 // }
 
-// static const font_t font_default = {
-//     .img_width = 84, .img_height = 48,
-//     .pixel_data = {
-//     0x00,0x00,0x00,0x00,0x00,0x80,0xC0,0xE0, 
-//     0x60,0x30,0x30,0x18,0x18,0x1C,0x1C,0x0C,
-//     0x0C,0x0C,0x0C,0x1C,0x1C,0x18,0x18,0x38, 
-//     0x30,0x70,0xE0,0xC0,0x80,0x00,0x00,0x00, // Row 0
-    
-//     0x00,0xE0,0xF8,0x3E,0x0F,0x03,0x01,0x00,
-//     0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,
-//     0x80,0x80,0xC0,0xC0,0x40,0x60,0x20,0x20,
-//     0x20,0x20,0x20,0xE1,0x23,0x27,0xFE,0xF8, // Row 1
-    
-//     0x00,0x1F,0x3F,0xF2,0xC2,0x8E,0x3F,0xE3,
-//     0x81,0x81,0x80,0x80,0x80,0xB8,0xD8,0x61,
-//     0x1F,0x01,0x03,0x0E,0x18,0x36,0x2E,0x20,
-//     0xA0,0xB0,0xD8,0xEF,0x70,0x38,0x1F,0x07, // Row 2
-    
-//     0x00,0x00,0x00,0x00,0x01,0x03,0x07,0x06,
-//     0x0E,0x0D,0x0D,0x1D,0x3D,0x78,0x70,0x30,
-//     0x3E,0x1E,0x18,0x18,0x1F,0x0F,0x0C,0x0C,
-//     0x07,0x07,0x07,0x00,0x00,0x00,0x00,0x00} // Row 3
-// };
-
-
-// void draw_matt_block(unsigned int selected, unsigned int selected_candidate)
-// {
-//     gl_draw_img(5, 5, 'A', GL_BLACK);
-//     color_t COLOR;
-//     if (selected_candidate == Candidate1) {
-//         COLOR = (selected == Candidate1) ? GL_AMBER: 0xFF999999;
-//     } else {
-//         COLOR = (selected == Candidate1) ? 0xF7DCB4 : GL_WHITE;
-//     }
-//     gl_draw_rect(em(5), em(20), em(52), em(40), COLOR);
-//     gl_draw_string(em(16), em(35), "Matthew", GL_BLACK);
-// }
+void draw_matt_block(unsigned int selected, unsigned int selected_candidate)
+{
+    // gl_draw_img(5, 5, GL_BLACK);
+    color_t COLOR;
+    if (selected_candidate == Candidate1) {
+        COLOR = (selected == Candidate1) ? GL_AMBER: 0xFF999999;
+    } else {
+        COLOR = (selected == Candidate1) ? 0xF7DCB4 : GL_WHITE;
+    }
+    gl_draw_rect(em(5), em(20), em(52), em(40), COLOR);
+    gl_draw_string(em(16), em(36), "Matthew", GL_BLACK);
+}
