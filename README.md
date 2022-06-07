@@ -68,17 +68,21 @@ The authority will then hash the vote to generate a certificate, and then provid
 
 **Creating Merkle Tree:**
 Each vote will be hashed into a merkle node as follows. Each of the votes are constructed into the merkle’s leaf nodes, and each non-leaf node is calculated as follows.
-
+```
+/// Non Leaf Nodes
 struct {
    Hash: H(LeftChild | RightChild)
    Count: LeftChild.count + RightChild.count
-} merkleNode (Non Leaf Node)
+} merkleNode
 
+/// Leaf Nodes
 struct {
    Hash: H(Vote)
    Count: Vote.count
-} merkleNode (Leaf Node)
+} merkleNode
 
+Note: These are the same structs.
+```
 
 
 At the end of the election, the authority will publish the final vote count and the hash of the e
