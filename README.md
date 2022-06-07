@@ -55,11 +55,14 @@ All N voters will register a pass-phrase with the central authority (vote counte
 
 **Voting:**
 The user can later exercise their passphrase to the central authority. If the passphrase is valid, the authority will store the votes as follows in the database.
+
+```
 struct {
 	Hash: H(password)
 	Randomness: 1256
 Vote: 0 || 1
 } vote (this is slightly different from in the code)
+```
 
 The authority will then hash the vote to generate a certificate, and then provide a digital signature on the vote - this basically is the authority ‘promising’ that the vote has been counted.
 
