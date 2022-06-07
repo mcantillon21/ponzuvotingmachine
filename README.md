@@ -1,5 +1,7 @@
 # The Ponzu Voting Terminal: CS107e Final Project (Molly and Pun)
 
+**TLDR**
+
 A fraud proof voting machine for the people. 
 
 Problem: We need a new lecturer. We must choose between existing legend Christos Kozyrakis and supreme all-knowing overlord Matthew Trost. 
